@@ -159,7 +159,7 @@ sudo lxc-attach -n "$CONTAINER" -- bash -c "echo 'unmanaged-devices=interface-na
 sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman-key --init"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman-key --populate"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman -Syu --noconfirm"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "yes y | pacman -Syu base-devel git gtk3 openssh xdg-utils xkeyboard-config base-devel xxd networkmanager alsa-plugins alsa-utils pulseaudio pulseaudio-alsa squashfuse tcl tk xclip  base-devel git gtest iniparser libxkbcommon ladspa rust sbc curl make neovim wl-clipboard fish base-devel fakeroot pacman-contrib wayland xorg-xwayland devtools dhclient neofetch sudo archlinuxcn-keyring"
+sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman -Syu  --noconfirm base-devel git gtk3 openssh xdg-utils xkeyboard-config base-devel xxd networkmanager alsa-plugins alsa-utils pulseaudio pulseaudio-alsa squashfuse tcl tk xclip  base-devel git gtest iniparser libxkbcommon ladspa rust sbc curl make neovim wl-clipboard fish base-devel fakeroot pacman-contrib wayland xorg-xwayland devtools dhclient neofetch sudo archlinuxcn-keyring"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "sudo useradd -d /home/$CONTAINER_USER -s /bin/bash -m $CONTAINER_USER"
 fix_groups
 sudo lxc-attach -n "$CONTAINER" -- bash -c "echo '$CONTAINER_USER ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-lxd"
@@ -167,7 +167,7 @@ sudo lxc-attach -n "$CONTAINER" -- bash -c "ln -s /chromeos/home/$CONTAINER_USER
 sudo lxc-attach -n "$CONTAINER" -- bash -c "loginctl enable-linger $CONTAINER_USER"
 
 sudo lxc-attach -n "$CONTAINER" -- bash -c "git clone https://aur.archlinux.org/paru.git && cd paru && yes y | makepkg -si"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "yes y | paru -S cros-container-guest-tools-git"
+sudo lxc-attach -n "$CONTAINER" -- bash -c "paru -S  --noconfirm cros-container-guest-tools-git"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "sudo systemctl enable cros-sftp"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier@0.service"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier@1.service"
@@ -352,22 +352,22 @@ set-default-sink cras-sink
 set-default-source cras-source
 PULSEAUDIOCFG
 echo \"autospawn = yes\" > ~/.config/pulse/client.conf
-CRAS_BRANCH=\$(git ls-remote https://chromium.googlesource.com/chromiumos/third_party/adhd | grep refs/heads/release | tail -1 | awk '{print \$2}' | cut -d\"/\" -f3)
-git clone -b \$CRAS_BRANCH https://chromium.googlesource.com/chromiumos/third_party/adhd
-cd ~/adhd
-GMOCK_LIBS=\"-lgmock\" GMOCK_CFLAGS=\"-L$CONTAINER_LIBDIR\" GTEST_LIBS=\"libgtest.a libgtest_main.a\" GTEST_CFLAGS=\"-L$CONTAINER_LIBDIR\" CFLAGS=\"-m32 -DCRAS_SOCKET_FILE_DIR=/var/run/cras\" AM_CFLAGS=\"-Wno-error\" make
-sudo cp ./cras/src/.libs/*.so $CONTAINER_ALSALIBDIR/
-sudo ln -s $CONTAINER_ALSALIBDIR/libcras.so $CONTAINER_LIBDIR/libcras.so.0
-sudo cp ./cras/src/.libs/cras_test_client /usr/bin/
-cd ..
-rm -rf ~/adhd
-SOMMELIER_BRANCH=\$(git ls-remote https://chromium.googlesource.com/chromiumos/containers/sommelier.git | grep refs/tags/ | tail -1 | awk '{print \$2}' | cut -d\"/\" -f3)
-git clone -b \$SOMMELIER_BRANCH https://chromium.googlesource.com/chromiumos/containers/sommelier.git
-cd ~/sommelier
-make
-sudo cp sommelier /usr/bin/
-cd ..
-rm -rf ~/sommelier
+# CRAS_BRANCH=\$(git ls-remote https://chromium.googlesource.com/chromiumos/third_party/adhd | grep refs/heads/release | tail -1 | awk '{print \$2}' | cut -d\"/\" -f3)
+# git clone -b \$CRAS_BRANCH https://chromium.googlesource.com/chromiumos/third_party/adhd
+# cd ~/adhd
+# GMOCK_LIBS=\"-lgmock\" GMOCK_CFLAGS=\"-L$CONTAINER_LIBDIR\" GTEST_LIBS=\"libgtest.a libgtest_main.a\" GTEST_CFLAGS=\"-L$CONTAINER_LIBDIR\" CFLAGS=\"-m32 -DCRAS_SOCKET_FILE_DIR=/var/run/cras\" AM_CFLAGS=\"-Wno-error\" make
+# sudo cp ./cras/src/.libs/*.so $CONTAINER_ALSALIBDIR/
+# sudo ln -s $CONTAINER_ALSALIBDIR/libcras.so $CONTAINER_LIBDIR/libcras.so.0
+# sudo cp ./cras/src/.libs/cras_test_client /usr/bin/
+# cd ..
+# rm -rf ~/adhd
+# SOMMELIER_BRANCH=\$(git ls-remote https://chromium.googlesource.com/chromiumos/containers/sommelier.git | grep refs/tags/ | tail -1 | awk '{print \$2}' | cut -d\"/\" -f3)
+# git clone -b \$SOMMELIER_BRANCH https://chromium.googlesource.com/chromiumos/containers/sommelier.git
+# cd ~/sommelier
+# make
+# sudo cp sommelier /usr/bin/
+# cd ..
+# rm -rf ~/sommelier
 # git clone https://github.com/apenwarr/xclipsync.git -b master
 # cd ~/xclipsync
 # sudo cp ./xclipfrom /usr/bin/
