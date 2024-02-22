@@ -191,7 +191,7 @@ case $DIST in
   "mint") RELEASE=vera;;
   "kali") RELEASE=current;;
 esac
-sudo lxc-create -t download -n "$CONTAINER" -- -d $DIST -r $RELEASE -a amd64 --no-validateb --server mirrors.tuna.tsinghua.edu.cn/lxc-images
+sudo lxc-create -t download -n "$CONTAINER" -- -d $DIST -r $RELEASE -a amd64 --no-validate --server mirrors.tuna.tsinghua.edu.cn/lxc-images
 set_container_defaults
 sudo lxc-start -n "$CONTAINER"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "echo $CONTAINER > /etc/containername"
