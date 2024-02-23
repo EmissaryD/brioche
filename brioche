@@ -210,7 +210,7 @@ sudo lxc-attach -n "$CONTAINER" -- bash -c "ln -s /chromeos/media/removable /med
 
 install_cros_fixes()
 {
-sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "cat <<'PROFILE' >> /etc/profile
+sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "sudo cat <<'PROFILE' >> /etc/profile
 export CLUTTER_BACKEND=wayland
 export DBUS_SYSTEM_BUS_ADDRESS=\"unix:path=/var/run/dbus/system_bus_socket\"
 export DISPLAY=:0
