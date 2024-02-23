@@ -210,8 +210,7 @@ sudo lxc-attach -n "$CONTAINER" -- bash -c "ln -s /chromeos/media/removable /med
 
 install_cros_fixes()
 {
-sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "cat <<'BASHRC' > ~/.bashrc
-export PS1=\"\[\e[1;34m\](container:\$(cat /etc/containername)) \u@\h \W \\\$\[\e[0m\] \"
+sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "cat <<'PROFILE' >> /etc/profile
 export CLUTTER_BACKEND=wayland
 export DBUS_SYSTEM_BUS_ADDRESS=\"unix:path=/var/run/dbus/system_bus_socket\"
 export DISPLAY=:0
@@ -220,24 +219,27 @@ export WAYLAND_DISPLAY=wayland-0
 export XDG_SESSION_CLASS=user
 export XDG_RUNTIME_DIR=/var/run/user/1000
 export XDG_SESSION_TYPE=wayland
+PROFILE"
+sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "cat <<'BASHRC' > ~/.bashrc
+export PS1=\"\[\e[1;34m\](container:\$(cat /etc/containername)) \u@\h \W \\\$\[\e[0m\] \"
 BASHRC"
 sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "chmod 0755 ~/.bashrc"
 sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "cat <<'CROS' | sudo tee /usr/bin/brioche-install >/dev/null 2>&1
 #!/bin/bash
 sudo rm ~/.brioche_*
-cat <<'BASHRC' > ~/.bashrc
-export PS1=\"\[\e[1;34m\](container:\$(cat /etc/containername)) \u@\h \W \\\$\[\e[0m\] \"
-export CLUTTER_BACKEND=wayland
-export DBUS_SYSTEM_BUS_ADDRESS=\"unix:path=/var/run/dbus/system_bus_socket\"
-export DISPLAY=:0
-export GDK_BACKEND=wayland
-export WAYLAND_DISPLAY=wayland-0
-export XDG_SESSION_CLASS=user
-export XDG_RUNTIME_DIR=/var/run/user/1000
-export XDG_SESSION_TYPE=wayland
-export AMD_DEBUG=nodcc
-BASHRC
-chmod 0755 ~/.bashrc
+# cat <<'BASHRC' > ~/.bashrc
+# export PS1=\"\[\e[1;34m\](container:\$(cat /etc/containername)) \u@\h \W \\\$\[\e[0m\] \"
+# export CLUTTER_BACKEND=wayland
+# export DBUS_SYSTEM_BUS_ADDRESS=\"unix:path=/var/run/dbus/system_bus_socket\"
+# export DISPLAY=:0
+# export GDK_BACKEND=wayland
+# export WAYLAND_DISPLAY=wayland-0
+# export XDG_SESSION_CLASS=user
+# export XDG_RUNTIME_DIR=/var/run/user/1000
+# export XDG_SESSION_TYPE=wayland
+# export AMD_DEBUG=nodcc
+# BASHRC
+# chmod 0755 ~/.bashrc
 cat <<'SYSINITSCRIPT' | sudo tee /usr/bin/brioche-sysinit >/dev/null 2>&1
 #!/bin/bash
 rm -f /etc/resolv.conf
@@ -292,28 +294,28 @@ WantedBy=basic.target
 SYSTEMDUSERINIT
 sudo systemctl enable brioche-sysinit
 systemctl --user enable brioche-userinit
-cat <<'POLKIT' | sudo tee /etc/polkit-1/localauthority/50-local.d/45-remote-desktop.pkla >/dev/null 2>&1
-[Allow Login, Shutdown, Restart]
-Identity=unix-user:*
-Action=org.freedesktop.login1.*
-ResultAny=yes
-ResultInactive=yes
-ResultActive=yes
+# cat <<'POLKIT' | sudo tee /etc/polkit-1/localauthority/50-local.d/45-remote-desktop.pkla >/dev/null 2>&1
+# [Allow Login, Shutdown, Restart]
+# Identity=unix-user:*
+# Action=org.freedesktop.login1.*
+# ResultAny=yes
+# ResultInactive=yes
+# ResultActive=yes
 
-[Allow Colord]
-Identity=unix-user:*
-Action=org.freedesktop.color-manager.create-device;org.freedesktop.color-manager.create-profile;org.freedesktop.color-manager.delete-device;org.freedesktop.color-manager.delete-profile;org.freedesktop.color-manager.modify-device;org.freedesktop.color-manager.modify-profile
-ResultAny=no
-ResultInactive=no
-ResultActive=yes
+# [Allow Colord]
+# Identity=unix-user:*
+# Action=org.freedesktop.color-manager.create-device;org.freedesktop.color-manager.create-profile;org.freedesktop.color-manager.delete-device;org.freedesktop.color-manager.delete-profile;org.freedesktop.color-manager.modify-device;org.freedesktop.color-manager.modify-profile
+# ResultAny=no
+# ResultInactive=no
+# ResultActive=yes
 
-[Allow Package Management]
-Identity=unix-user:*
-Action=org.freedesktop.packagekit.system-sources-refresh
-ResultAny=yes
-ResultInactive=yes
-ResultActive=yes
-POLKIT
+# [Allow Package Management]
+# Identity=unix-user:*
+# Action=org.freedesktop.packagekit.system-sources-refresh
+# ResultAny=yes
+# ResultInactive=yes
+# ResultActive=yes
+# POLKIT
 cat <<'ALSACFG' > ~/.asoundrc
 pcm.cras {
     type cras
@@ -392,7 +394,7 @@ reset
 create_distro
 sudo lxc-attach -n "$CONTAINER" -- bash -c "reset"
 # TODO
-# install_cros_fixes
+install_cros_fixes
 echo "Input the password for user $CONTAINER_USER:"
 sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "until sudo passwd $CONTAINER_USER; do echo 'Password confirmation does not match, try again'; done"
 sudo lxc-stop -n "$CONTAINER"
