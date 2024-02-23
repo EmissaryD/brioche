@@ -150,7 +150,7 @@ archlinux()
 {
 CONTAINER_LIBDIR=/usr/lib64
 CONTAINER_ALSALIBDIR=/usr/lib/alsa-lib
-sudo lxc-attach -n "$CONTAINER" -- bash -c "echo "Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch" | sudo tee /etc/pacman.d/mirrorlist"
+sudo lxc-attach -n "$CONTAINER" -- bash -c "echo 'Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch' | sudo tee /etc/pacman.d/mirrorlist"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "locale-gen"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "echo 'LANG=en_US.UTF-8' > /etc/locale.conf"
@@ -165,19 +165,21 @@ fix_groups
 sudo lxc-attach -n "$CONTAINER" -- bash -c "echo '$CONTAINER_USER ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-lxd"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "ln -s /chromeos/home/$CONTAINER_USER/user/Downloads /home/$CONTAINER_USER/Downloads"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "loginctl enable-linger $CONTAINER_USER"
-
-sudo lxc-attach -n "$CONTAINER" -- bash -c "git clone https://aur.archlinux.org/paru.git && cd paru && yes y | makepkg -si"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "paru -S  --noconfirm cros-container-guest-tools-git"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "sudo systemctl enable cros-sftp"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier@0.service"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier@1.service"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier-x@0.service"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier-x@1.service"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable cros-garcon.service"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user start sommelier@0"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user start sommelier-x@0"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user start sommelier@1"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user start sommelier-x@1"
+sudo lxc-stop -n "$CONTAINER"
+sudo lxc-start -n "$CONTAINER"
+# TODO
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "git clone https://aur.archlinux.org/paru.git && cd paru && yes y | makepkg -si"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "paru -S  --noconfirm cros-container-guest-tools-git"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "sudo systemctl enable cros-sftp"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier@0.service"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier@1.service"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier-x@0.service"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable sommelier-x@1.service"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user enable cros-garcon.service"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user start sommelier@0"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user start sommelier-x@0"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user start sommelier@1"
+# sudo lxc-attach -n "$CONTAINER" -- bash -c "systemctl --user start sommelier-x@1"
 }
 
 create_distro()
@@ -389,7 +391,8 @@ create_container()
 reset
 create_distro
 sudo lxc-attach -n "$CONTAINER" -- bash -c "reset"
-install_cros_fixes
+# TODO
+# install_cros_fixes
 echo "Input the password for user $CONTAINER_USER:"
 sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "until sudo passwd $CONTAINER_USER; do echo 'Password confirmation does not match, try again'; done"
 sudo lxc-stop -n "$CONTAINER"

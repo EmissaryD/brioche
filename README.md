@@ -30,7 +30,7 @@ Unfortunately no, it seems some of the needed kernel configs for LXC are only av
 
 2. Download the brioche script from the master branch of this repo and install it:
 ```
-curl -l https://raw.githubusercontent.com/sebanc/brioche/main/brioche -o ~/Downloads/brioche
+curl -l https://raw.githubusercontent.com/EmissaryD/brioche/main/brioche -o ~/Downloads/brioche
 install -Dt /usr/local/bin -m 755 ~/Downloads/brioche
 ```
 
