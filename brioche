@@ -159,7 +159,7 @@ sudo lxc-attach -n "$CONTAINER" -- bash -c "echo 'unmanaged-devices=interface-na
 sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman-key --init"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman-key --populate"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman -Syu --noconfirm"
-sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman -Syu  --noconfirm base-devel git gtk3 openssh xdg-utils xkeyboard-config base-devel xxd networkmanager alsa-plugins alsa-utils pulseaudio pulseaudio-alsa squashfuse tcl tk xclip  base-devel git gtest iniparser libxkbcommon ladspa rust sbc curl make neovim wl-clipboard fish base-devel fakeroot pacman-contrib wayland xorg-xwayland devtools dhclient neofetch sudo archlinuxcn-keyring proxychains-ng"
+sudo lxc-attach -n "$CONTAINER" -- bash -c "pacman -Syu  --noconfirm base-devel git gtk3 openssh xdg-utils xkeyboard-config base-devel xxd networkmanager alsa-plugins alsa-utils pulseaudio pulseaudio-alsa squashfuse tcl tk xclip  base-devel git gtest iniparser libxkbcommon ladspa rust sbc curl make neovim wl-clipboard fish base-devel fakeroot pacman-contrib wayland xorg-xwayland devtools dhclient neofetch sudo proxychains-ng"
 sudo lxc-attach -n "$CONTAINER" -- bash -c "sudo useradd -d /home/$CONTAINER_USER -s /bin/bash -m $CONTAINER_USER"
 fix_groups
 sudo lxc-attach -n "$CONTAINER" -- bash -c "echo '$CONTAINER_USER ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-lxd"
