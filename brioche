@@ -214,7 +214,7 @@ sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "sudo cat <<'PR
 export CLUTTER_BACKEND=wayland
 export DBUS_SYSTEM_BUS_ADDRESS=\"unix:path=/var/run/dbus/system_bus_socket\"
 export DISPLAY=:0
-export GDK_BACKEND=wayland
+export GDK_BACKEND=x11
 export WAYLAND_DISPLAY=wayland-0
 export XDG_SESSION_CLASS=user
 export XDG_RUNTIME_DIR=/var/run/user/1000
@@ -232,7 +232,7 @@ sudo rm ~/.brioche_*
 # export CLUTTER_BACKEND=wayland
 # export DBUS_SYSTEM_BUS_ADDRESS=\"unix:path=/var/run/dbus/system_bus_socket\"
 # export DISPLAY=:0
-# export GDK_BACKEND=wayland
+# export GDK_BACKEND=x11
 # export WAYLAND_DISPLAY=wayland-0
 # export XDG_SESSION_CLASS=user
 # export XDG_RUNTIME_DIR=/var/run/user/1000
