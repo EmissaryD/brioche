@@ -1,0 +1,104 @@
+#!/bin/bash -a
+# Exit if in container.
+if [[ -f '/.dockerenv' ]]; then
+	echo "Cannot run sommelier in a container."
+	# Return or exit depending upon whether script was sourced.
+	(return 0 2>/dev/null) && return 0 || exit 0
+fi
+mkdir -p /usr/local/var/log && touch /usr/local/var/log/sommelier.log
+set -a
+# Set DRM device here so output is visible, but don't run
+# some of these checks in an env.d file since we don't need
+# them run every time a shell is opened.
+# Get a list of all available DRM render nodes.
+DRM_DEVICES_LIST=($(cd /dev/dri/ || exit ; ls renderD*))
+
+	  # if two or more render nodes available, choose one based on the corresponding render device path:
+	  #   devices/platform/vegm/...: virtual GEM device provided by Chrome OS, hardware acceleration may not available on this node. (should be avoided)
+	  #   devices/pci*/...: linked to the actual graphics card device path, provided by graphics card driver. (preferred)
+	  #
+	  if [[ "${#DRM_DEVICES_LIST[@]}" -gt 1 ]]; then
+		  for dev in "${DRM_DEVICES_LIST[@]}"; do
+			  if [[ "$(coreutils --coreutils-prog=readlink -f "/sys/class/drm/${dev}/device/driver")" =~ (bus/pci|drm) ]]; then
+				  SOMMELIER_DRM_DEVICE="/dev/dri/${dev##*/}"
+				  echo -e "\e[1;33m""${#DRM_DEVICES_LIST[@]} DRM render nodes available, ${SOMMELIER_DRM_DEVICE} will be used.""\e[0m"
+				  break
+			  fi
+		  done
+	  else
+		  # if only one node available, use it directly
+		  SOMMELIER_DRM_DEVICE="/dev/dri/${DRM_DEVICES_LIST[0]##*/}"
+	  fi
+	  direct_scaling_possible() {
+		  # Check if milestone is greater than 105.
+		  milestone=$(grep CHROMEOS_RELEASE_CHROME_MILESTONE /etc/lsb-release | cut -d= -f2)
+		  (( $milestone > 105 )) && return 0
+		  return 1
+	  }
+	  # Not sure which milestone enables direct scale, so be
+	  # conservative.
+	  SOMMELIER_DIRECT_SCALE=
+	  if direct_scaling_possible; then
+		  echo -e "\e[1;33m""Sommelier can use direct scaling.""\e[0m"
+		  SOMMELIER_DIRECT_SCALE='--direct-scale'
+	  fi
+	  set +a
+	  checksommelierwayland () {
+		  #if [ -f "/usr/local/var/run/sommelier-wayland.pid" ]; then
+		  #  /sbin/ss --unix -a -p |\
+		  #    grep "\b$(cat /usr/local/var/run/sommelier-wayland.pid)" |\
+		  #    grep wayland &>/dev/null
+		  #else
+		  #  return 1
+		  #fi
+		  # Return or exit depending upon whether script was sourced.
+		  (return 0 2>/dev/null) && return 0 || exit 0
+	  }
+	  checksommelierxwayland () {
+		  DISPLAY="${DISPLAY}" timeout 1s xset q &>> /usr/local/var/log/sommelier.log
+	  }
+	  if ! checksommelierwayland || ! checksommelierxwayland ; then
+		  [ -f  /usr/local/bin/stopbroadway ] && stopbroadway
+		  set -a
+		  # via https://stackoverflow.com/questions/47027323/round-to-the-nearest-0-5-decimal-in-bash/47027557#47027557
+		  function roundhalves {
+			  echo "$1 * 2" | bc | xargs -I@ printf "%1.f" @ | xargs -I% echo "% * .5" | bc
+		  }
+		  pxwidth=$(WAYLAND_DISPLAY=wayland-0 wayland-info -i wl_output | grep width: | grep px | head -n 1 | awk '{print $2}')
+		  lwidth=$(WAYLAND_DISPLAY=wayland-0 wayland-info -i zxdg_output_manager_v1 | grep logical_width:  | sed 's/,//' | awk '{print $2}')
+		  # echo "pxwidth: $pxwidth, lwidth: $lwidth"
+		  # SCALE needs to be rounded to the nearest 0.5
+		  # Check to see if pxwidth and lwidth are integers before calculating SCALE.
+		  # wayland-info on armv7l does not show lwidth, but aarch64 does.
+		  if [[ $pxwidth == ?(-)+([0-9]) ]] && [[ $lwidth == ?(-)+([0-9]) ]] && [[ -z "$SCALE" ]] ; then
+			  SCALE=$(roundhalves $(echo "scale=2 ;$lwidth / $pxwidth" | bc))
+		  fi
+		  # Set default SCALE to 1 if unset.
+		  SCALE=${SCALE:-1}
+		  # Allow overriding environment variables before starting sommelier daemon.
+		  [ -f "$HOME/.sommelier.env" ] && source ~/.sommelier.env 2>> /usr/local/var/log/sommelier.log
+		  set +a
+		  echo -e "\e[1;33m""Sommelier SCALE is set to \e[1;32m"${SCALE}"\e[1;33m"."\e[0m"
+		  echo -e "\e[1;33m""SCALE may be manually set in ~/.sommelier.env .""\e[0m"
+		  /usr/local/sbin/sommelierd &>/dev/null &
+	  fi
+	  wait=3
+	  until checksommelierwayland && checksommelierxwayland; do
+		  [ "${wait}" -le "0" ] && break
+		  (( wait = wait - 1 ))
+		  sleep 3
+	  done
+
+	  SOMMWPIDS="$(pgrep -f "sommelier.elf --parent" 2> /dev/null)"
+	  SOMMWPROCS="$(pgrep -fa "sommelier.elf --parent" 2> /dev/null)"
+	  SOMMXPIDS="$(pgrep -f "sommelier.elf -X" 2> /dev/null)"
+	  SOMMXPROCS="$(pgrep -fa "sommelier.elf -X" 2> /dev/null)"
+
+	  if checksommelierwayland && checksommelierxwayland ; then
+		  echo -e "sommelier processes running: ${SOMMWPIDS} ${SOMMXPIDS}"
+	  else
+		  echo "some sommelier processes failed to start"
+		  [[ -n ${SOMMWPROCS} || -n ${SOMMXPROCS} ]] && echo -e "sommelier processes running: ${SOMMWPROCS} \\n ${SOMMXPROCS}"
+		  # Return or exit depending upon whether script was sourced.
+		  (return 0 2>/dev/null) && return 1 || exit 1
+	  fi

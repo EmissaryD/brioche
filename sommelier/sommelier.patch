@@ -1,0 +1,43 @@
+diff -Npaur a/sommelier.cc b/sommelier.cc
+--- a/sommelier.cc	2024-03-07 16:44:13.513582795 -0500
++++ b/sommelier.cc	2024-03-07 16:46:42.699788185 -0500
+@@ -108,6 +108,8 @@ struct sl_data_source {
+
+	static const char STEAM_APP_CLASS_PREFIX[] = "steam_app_";
+
++char xdg_shell_interface[20] = "xdg_wm_base";
++
+	int sl_open_wayland_socket(const char* socket_name,
+				struct sockaddr_un* addr,
+				int* lock_fd,
+@@ -592,7 +594,7 @@ void sl_registry_handler(void* data,
+					data_device_manager->host_global =
+					sl_data_device_manager_global_create(ctx);
+					}
+-  } else if (strcmp(interface, "xdg_wm_base") == 0) {
++  } else if (strcmp(interface, xdg_shell_interface) == 0) {
+					struct sl_xdg_shell* xdg_shell =
+					static_cast<sl_xdg_shell*>(malloc(sizeof(struct sl_xdg_shell)));
+					assert(xdg_shell);
+					@@ -4014,6 +4016,8 @@ int real_main(int argc, char** argv) {
+					ctx.use_virtgpu_channel = true;
+					} else if (strstr(arg, "--noop-driver") == arg) {
+					noop_driver = true;
+					+    } else if (strstr(arg, "--xdg-shell-v6") == arg) {
+					+      strcpy(xdg_shell_interface, "zxdg_shell_v6");
+					} else if (strstr(arg, "--stable-scaling") == arg) {
+					ctx.stable_scaling = true;
+					} else if (strstr(arg, "--viewport-resize") == arg) {
+diff -Npaur a/sommelier.h b/sommelier.h
+--- a/sommelier.h	2024-03-07 16:44:17.017540640 -0500
++++ b/sommelier.h	2024-03-07 16:48:46.286301715 -0500
+@@ -22,7 +22,8 @@
+#include "weak-resource-ptr.h"          // NOLINT(build/include_directory)
+
+#define SOMMELIER_VERSION "0.20"
+-#define APPLICATION_ID_FORMAT_PREFIX "org.chromium.guest_os.%s"
++#define XDG_SHELL_VERSION 1u
++#define APPLICATION_ID_FORMAT_PREFIX "org.chromebrew.%s"
+	#define NATIVE_WAYLAND_APPLICATION_ID_FORMAT \
+	APPLICATION_ID_FORMAT_PREFIX ".wayland.%s"
+
