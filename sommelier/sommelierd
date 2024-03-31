@@ -47,7 +47,7 @@ sommelier_cmd="sommelier -X \
 	       --force-drm-device=${SOMMELIER_DRM_DEVICE} \
 	       --display=wayland-0 \
 	       --xwayland-path=/usr/bin/Xwayland \
-	       --xwayland-gl-driver-path=/usr/lib/dri64 \W
+	       --xwayland-gl-driver-path=/usr/lib/dri64 \
 	       --peer-cmd-prefix=/lib64/ld-linux-x86-64.so.2 \
 	       --noop-driver ${xdg_shell_v6} \
 	       --no-exit-with-child \
