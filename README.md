@@ -1,7 +1,7 @@
 # Brioche
 
 **Brioche is not supported since ChromeOS r118 as sudo is not possible in crosh shell anymore.**
-
+**Only test in FydeOS v18, please use this shell upper FydeOS v18**
 ## Overview
 
 First of all, thanks go to the Crouton maintainers for their work which was actively used when creating this project.
@@ -65,7 +65,6 @@ run `brioche mycontainer desktop gnome`
 ## Main known issues
 
 - Most distros seem to have issues when using "tasksel" to install a desktop, use the distro's standard package manager instead.
-- vscode will only launch if you add the "--verbose" argument (i.e. `brioche mycontainer app code --verbose`)
 
 ## Support
 
