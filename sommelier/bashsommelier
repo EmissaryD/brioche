@@ -1,4 +1,0 @@
-#!/bin/bash
-source /usr/local/bin/startsommelier
-mkdir -p /usr/local/var/log && touch /usr/local/var/log/sommelier.log
-pgrep Xwayland &>> /usr/local/var/log/sommelier.log && /usr/local/etc/sommelierrc &>> /usr/local/var/log/sommelier.log
