@@ -365,47 +365,48 @@ tar -zxvf ./sommelier.tar.gz -C ~/sommelier
 cd ~/sommelier
 cat <<'SOMMELIERPATCH' > sommelier.patch
 diff -Npaur a/sommelier.cc b/sommelier.cc
---- a/sommelier.cc        2024-03-07 16:44:13.513582795 -0500
-+++ b/sommelier.cc        2024-03-07 16:46:42.699788185 -0500
-@@ -108,6 +108,8 @@ struct sl_data_source {
+    --- a/sommelier.cc        2024-03-07 16:44:13.513582795 -0500
+    +++ b/sommelier.cc        2024-03-07 16:46:42.699788185 -0500
+    @@ -108,6 +108,8 @@ struct sl_data_source {
 
-static const char STEAM_APP_CLASS_PREFIX[] = \"steam_app_\";
+    static const char STEAM_APP_CLASS_PREFIX[] = \"steam_app_\";
 
-+char xdg_shell_interface[20] = \"xdg_wm_base\";
-+
-int sl_open_wayland_socket(const char* socket_name,
-                            struct sockaddr_un* addr,
-                            int* lock_fd,
-@@ -592,7 +594,7 @@ void sl_registry_handler(void* data,
-        data_device_manager->host_global =
-            sl_data_device_manager_global_create(ctx);
-    }
--  } else if (strcmp(interface, \"xdg_wm_base\") == 0) {
-+  } else if (strcmp(interface, xdg_shell_interface) == 0) {
-    struct sl_xdg_shell* xdg_shell =
-        static_cast<sl_xdg_shell*>(malloc(sizeof(struct sl_xdg_shell)));
-    assert(xdg_shell);
-@@ -4014,6 +4016,8 @@ int real_main(int argc, char** argv) {
-        ctx.use_virtgpu_channel = true;
-    } else if (strstr(arg, \"--noop-driver\") == arg) {
-        noop_driver = true;
-+    } else if (strstr(arg, \"--xdg-shell-v6\") == arg) {
-+      strcpy(xdg_shell_interface, \"zxdg_shell_v6\");
-    } else if (strstr(arg, \"--stable-scaling\") == arg) {
-        ctx.stable_scaling = true;
-    } else if (strstr(arg, \"--viewport-resize\") == arg) {
-diff -Npaur a/sommelier.h b/sommelier.h
---- a/sommelier.h 2024-03-07 16:44:17.017540640 -0500
-+++ b/sommelier.h 2024-03-07 16:48:46.286301715 -0500
-@@ -22,7 +22,8 @@
-#include \"weak-resource-ptr.h\"          // NOLINT(build/include_directory)
+    +char xdg_shell_interface[20] = \"xdg_wm_base\";
+    +
+    int sl_open_wayland_socket(const char* socket_name,
+                                struct sockaddr_un* addr,
+                                int* lock_fd,
+    @@ -592,7 +594,7 @@ void sl_registry_handler(void* data,
+            data_device_manager->host_global =
+                sl_data_device_manager_global_create(ctx);
+        }
+    -  } else if (strcmp(interface, \"xdg_wm_base\") == 0) {
+    +  } else if (strcmp(interface, xdg_shell_interface) == 0) {
+        struct sl_xdg_shell* xdg_shell =
+            static_cast<sl_xdg_shell*>(malloc(sizeof(struct sl_xdg_shell)));
+        assert(xdg_shell);
+    @@ -4014,6 +4016,8 @@ int real_main(int argc, char** argv) {
+            ctx.use_virtgpu_channel = true;
+        } else if (strstr(arg, \"--noop-driver\") == arg) {
+            noop_driver = true;
+    +    } else if (strstr(arg, \"--xdg-shell-v6\") == arg) {
+    +      strcpy(xdg_shell_interface, \"zxdg_shell_v6\");
+        } else if (strstr(arg, \"--stable-scaling\") == arg) {
+            ctx.stable_scaling = true;
+        } else if (strstr(arg, \"--viewport-resize\") == arg) {
+    diff -Npaur a/sommelier.h b/sommelier.h
+    --- a/sommelier.h 2024-03-07 16:44:17.017540640 -0500
+    +++ b/sommelier.h 2024-03-07 16:48:46.286301715 -0500
+    @@ -22,7 +22,8 @@
+    #include \"weak-resource-ptr.h\"          // NOLINT(build/include_directory)
 
-#define SOMMELIER_VERSION \"0.20\"
--#define APPLICATION_ID_FORMAT_PREFIX \"org.chromium.guest_os.%s\"
-+#define XDG_SHELL_VERSION 1u
-+#define APPLICATION_ID_FORMAT_PREFIX \"org.brioche.%s\"
-#define NATIVE_WAYLAND_APPLICATION_ID_FORMAT \\
-    APPLICATION_ID_FORMAT_PREFIX \".wayland.%s\"
+
+    #define SOMMELIER_VERSION \"0.20\"
+    -#define APPLICATION_ID_FORMAT_PREFIX \"org.chromium.guest_os.%s\"
+    +#define XDG_SHELL_VERSION 1u
+    +#define APPLICATION_ID_FORMAT_PREFIX \"org.brioche.%s\"
+    #define NATIVE_WAYLAND_APPLICATION_ID_FORMAT \\
+        APPLICATION_ID_FORMAT_PREFIX \".wayland.%s\"
 SOMMELIERPATCH
 yes |patch -p1 -i sommelier.patch
 meson setup -Db_asneeded=false           -Db_lto=true           -Db_lto_mode=thin           -Dwith_tests=false -Dxwayland_path=\$(echo \$(which Xwayland)) -Dxwayland_gl_driver_path=/lib64/dri -Ddefault_library=both builddir
@@ -505,7 +506,7 @@ xclipsync &
 \$(echo \$(cat /usr/share/xsessions/"$3".desktop | grep "^Exec=" | cut -f2- -d=))
 COMMAND"
     sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "chmod 0755 ~/.brioche_last_desktop.sh"
-    sudo lxc-attach -n mylinux -- su --login chronos -c "sommelier -X --x-display=:1 --scale=1 --glamor --force-drm-device=/dev/dri/renderD128 --display=wayland-0 --xwayland-path=/usr/bin/Xwayland --xwayland-gl-driver-path=/lib64/dri --noop-driver  --no-exit-with-child xinit ~/.brioche_last_desktop.sh -- /usr/bin/Xephyr -resizeable -fullscreen :2 >~/.sommelier.log 2>&1" >/dev/null 2>&1 &
+    sudo lxc-attach -n "$CONTAINER" -- su --login $CONTAINER_USER -c "sommelier -X --x-display=:1 --scale=1 --glamor --force-drm-device=/dev/dri/renderD128 --display=wayland-0 --xwayland-path=/usr/bin/Xwayland --xwayland-gl-driver-path=/lib64/dri --noop-driver  --no-exit-with-child xinit ~/.brioche_last_desktop.sh -- /usr/bin/Xephyr -resizeable -fullscreen :2 >~/.sommelier.log 2>&1" >/dev/null 2>&1 &
 elif [ "$CONTAINER_COMMAND" == "list-desktops" ]; then
     verify_container
     init
